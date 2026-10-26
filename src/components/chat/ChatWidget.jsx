@@ -254,9 +254,18 @@ export default function ChatWidget() {
     try {
       const res = await chatService.sendAiMessage(text, sessionId);
       const answer =
+        res?.data?.response ||
+        res?.data?.reply ||
         res?.data?.answer ||
+        res?.response ||
+        res?.reply ||
+        res?.answer ||
+        res?.data?.data?.response ||
+        res?.data?.data?.reply ||
         res?.data?.data?.answer ||
-        res?.message ||
+        (res?.data && typeof res.data === 'string' ? res.data : null) ||
+        (typeof res === 'string' ? res : null) ||
+        (res?.message && res.message !== 'AI response generated successfully.' ? res.message : null) ||
         'Thank you! Let me know what else you would like to know about Cambodia.';
       const respISO = new Date().toISOString();
 
@@ -268,15 +277,18 @@ export default function ChatWidget() {
       };
 
       setMessages((prev) => [...prev, botMsg]);
-    } catch {
+    } catch (err) {
       const errISO = new Date().toISOString();
+      const isRateLimit = err?.status === 429 || err?.message?.toLowerCase().includes('too many');
+      const errorMsg = isRateLimit
+        ? 'You are sending messages too quickly. Please wait a moment before sending another message.'
+        : 'Angkor Verse AI is currently syncing. You can explore destinations, temples, and festival guides in the menu above!';
       setMessages((prev) => [
         ...prev,
         {
           id: `err_${crypto.randomUUID()}`,
           sender: 'assistant',
-          message:
-            'Angkor Verse AI is currently syncing. You can explore destinations, temples, and festival guides in the menu above!',
+          message: errorMsg,
           created_at: errISO,
         },
       ]);

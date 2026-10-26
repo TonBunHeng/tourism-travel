@@ -4,6 +4,7 @@ import { Search, Briefcase, Loader2, ChevronDown } from 'lucide-react';
 import businessService from '../../services/businessService';
 import provinceService from '../../services/provinceService';
 import categoryService from '../../services/categoryService';
+import { useTravel } from '../../context/TravelContext';
 import BusinessCard from '../../components/common/BusinessCard';
 import BusinessesHeader from './BusinessesHeader';
 import Breadcrumb from '../../components/common/Breadcrumb';
@@ -11,12 +12,16 @@ import SimplePagination from '../../components/common/SimplePagination';
 
 export default function Businesses() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { provinces: globalProvinces = [], categories: globalCategories = [] } = useTravel();
+  const [localProvinces, setLocalProvinces] = useState([]);
+  const [localCategories, setLocalCategories] = useState([]);
   const [businesses, setBusinesses] = useState([]);
-  const [provinces, setProvinces] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState(null);
+
+  const provinces = globalProvinces.length > 0 ? globalProvinces : localProvinces;
+  const categories = globalCategories.length > 0 ? globalCategories : localCategories;
 
   const searchParam = searchParams.get('search') || '';
   const [search, setSearch] = useState(searchParam);
@@ -34,20 +39,16 @@ export default function Businesses() {
   const page = Number(searchParams.get('page')) || 1;
 
   useEffect(() => {
-    const fetchMetadata = async () => {
-      try {
-        const [provRes, catRes] = await Promise.all([
-          provinceService.getProvinces().catch(() => ({ data: [] })),
-          categoryService.getCategories().catch(() => ({ data: [] })),
-        ]);
-        setProvinces(provRes?.data || provRes || []);
-        setCategories(catRes?.data || catRes || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchMetadata();
-  }, []);
+    if (globalProvinces.length === 0 || globalCategories.length === 0) {
+      Promise.all([
+        provinceService.getProvinces().catch(() => ({ data: [] })),
+        categoryService.getCategories().catch(() => ({ data: [] })),
+      ]).then(([provRes, catRes]) => {
+        setLocalProvinces(provRes?.data || provRes || []);
+        setLocalCategories(catRes?.data || catRes || []);
+      }).catch(console.error);
+    }
+  }, [globalProvinces.length, globalCategories.length]);
 
   const fetchBusinesses = useCallback(async () => {
     setLoading(true);

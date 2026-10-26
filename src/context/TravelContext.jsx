@@ -68,19 +68,8 @@ export const TravelProvider = ({ children }) => {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      favoriteService.getFavorites().then((res) => {
-        if (res?.data && Array.isArray(res.data)) {
-          setFavorites(res.data);
-        }
-      }).catch((err) => {
-        console.error('Failed to fetch favorites', err);
-      });
-    } else {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFavorites([]);
-    }
-  }, [isAuthenticated]);
+    fetchFavorites();
+  }, [fetchFavorites]);
 
   const isFavorite = (placeId) => {
     if (!placeId) return false;

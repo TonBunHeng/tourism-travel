@@ -127,7 +127,7 @@ export default function Reviews() {
         setLoading(false);
       });
 
-    placeService.getPlaces().then((res) => {
+    placeService.getPlaces({ per_page: 5 }).then((res) => {
       if (!isMounted) return;
       const data = res?.data || res;
       const list = Array.isArray(data) ? data : (data?.data || []);

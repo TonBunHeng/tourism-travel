@@ -7,7 +7,7 @@ export const aiService = {
       session_id: sessionId,
       ...context,
     });
-    return response.data;
+    return response?.data || response;
   },
 
   getConversations: async (params = {}) => {

@@ -59,24 +59,22 @@ export default function BusinessDetails() {
     setLoading(true);
     setError(null);
     try {
-      const [bizRes, srvRes, hrsRes, prmRes, evtRes, galRes, rvwRes] = await Promise.all([
+      const [bizRes, evtRes, rvwRes] = await Promise.all([
         businessService.getBusinessById(id),
-        businessService.getBusinessServices(id).catch(() => ({ data: [] })),
-        businessService.getBusinessHours(id).catch(() => ({ data: [] })),
-        businessService.getBusinessPromotions(id).catch(() => ({ data: [] })),
         businessService.getBusinessEvents(id).catch(() => ({ data: [] })),
-        businessService.getBusinessGallery(id).catch(() => ({ data: [] })),
         businessService.getBusinessReviews(id).catch(() => ({ data: [] })),
       ]);
 
       const bizObj = bizRes?.data || bizRes;
       setBusiness(bizObj);
-      setServices(srvRes?.data || srvRes || []);
-      setHours(hrsRes?.data || hrsRes || []);
-      setPromotions(prmRes?.data || prmRes || []);
-      setEvents(evtRes?.data || evtRes || []);
-      setGallery(galRes?.data || galRes || []);
+      setServices(bizObj?.services || []);
+      setHours(bizObj?.hours || []);
+      setPromotions(bizObj?.promotions || []);
+      setGallery(bizObj?.images || []);
       
+      const eventList = evtRes?.data?.events || evtRes?.data || evtRes || [];
+      setEvents(Array.isArray(eventList) ? eventList : []);
+
       const reviewList = rvwRes?.data?.reviews || rvwRes?.data || rvwRes || [];
       setReviews(Array.isArray(reviewList) ? reviewList : []);
     } catch (err) {
